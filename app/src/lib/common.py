@@ -1,6 +1,8 @@
 import hashlib
 import base64 
-import pickle
+import pickle 
+import time 
+import functools
 from pydantic import BaseModel
 from pathlib import Path 
 
@@ -9,7 +11,7 @@ DOCUMENT_ROOT="/Users/Jason/project/surl/app/data"
 class ModelSurl(BaseModel):
     origin: str 
     surl: str    
-    
+ 
 def encoding_url(targetURL):  
     '''  
     encode plain text url with base64
@@ -65,7 +67,16 @@ def saveurl(saveObj):
             pickle.dump(saveObj, f) 
     except Exception as e:
         print(e) 
-        
+def benchmark(func):
+    @functools.wraps(func)
+    def wrapper_timer(*args, **kwargs):
+        start_time = time.perf_counter()
+        result = func(*args, **kwargs)
+        end_time = time.perf_counter()
+        elapsed_time = end_time - start_time
+        print (f"function { func.__name__!r} took {elapsed_time} sec") 
+        return result
+    return wrapper_timer
 if __name__ == "__main__":
     url = ['https://stackoverflow.com/questions/8247792/python-how-to-cut-a-string-in-python',
            'https://stackoverflow.com/questions/58663300/cut-string-in-python-from-specific-word-words-to-the-end-of-the-string',
@@ -75,4 +86,5 @@ if __name__ == "__main__":
         s = short_url(u) 
         sObj = ModelSurl(surl=s, origin=u)
         saveurl(sObj)
-        resolve(s) 
+        resolve(s)
+
