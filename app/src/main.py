@@ -1,7 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from pydantic import BaseModel, AnyUrl
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
-from lib.common import resolve, saveurl, short_url
+from lib.common import resolve, saveurl, short_url, benchmark
 
 app = FastAPI() 
 #### 
@@ -18,10 +21,14 @@ class ModelSurl(BaseModel):
 class ModelOrigin(BaseModel):
     origin: str
      
+app.mount("/static", StaticFiles(directory="static"), name="static") 
+templates = Jinja2Templates(directory="templates") 
 
-@app.get("/") 
-def index():
-    return {"hello world"} 
+@app.get("/{id}", response_class=HTMLResponse) 
+async def index(request: Request, id: str): 
+    return templates.TemplateResponse (
+        request=request, name="item.html", context={"id":id}
+    )
 
 @app.post("/csurl/")
 async def mkshort(csurl: ModelOrigin): 
